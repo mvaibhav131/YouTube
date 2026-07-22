@@ -18,6 +18,7 @@ import { ytFetcher, API, fetchVideoDetails, fetchChannelDetails } from '../../li
 // ── Related video card ─────────────────────────────────────────────────────
 function RelCard({ video }) {
   const router  = useRouter();
+  if (!video?.snippet) return null;          // null guard
   const sn      = video.snippet || {};
   const vidId   = getVideoId(video);
   const thumb   = getThumbnail(sn, 'medium');
@@ -208,7 +209,9 @@ export default function WatchPage({ initialVideo, initialChannel }) {
     ytFetcher,
     { revalidateOnFocus: false, dedupingInterval: 300_000 }
   );
-  const related = (relData?.items || []).filter((v) => getVideoId(v) !== videoId);
+  const related = (relData?.items || [])
+    .filter(Boolean)                           // remove null API entries
+    .filter((v) => getVideoId(v) !== videoId);
 
   const tags      = (sn.tags || []).slice(0, 6);
   const pubDate   = sn.publishedAt
@@ -241,7 +244,8 @@ export default function WatchPage({ initialVideo, initialChannel }) {
               <div className="yt-player">
                 {videoId && (
                   <iframe
-                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+                    key={videoId}
+                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
                     title={sn.title || 'YouTube video'}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
