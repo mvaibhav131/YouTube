@@ -234,143 +234,142 @@ export default function WatchPage({ initialVideo, initialChannel }) {
         sidebar === 'expanded' ? 'sidebar-expanded' :
         sidebar === 'mini'     ? 'sidebar-mini'     : ''
       }`}>
-        {vLoading ? (
-          <WatchSkeleton />
-        ) : (
-          <div className="yt-watch-wrap">
-            {/* ── Primary column ─────────────────────────────────────────── */}
-            <div className="yt-watch-primary">
-              {/* Player */}
-              <div className="yt-player">
-                {videoId && (
-                  <iframe
-                    key={videoId}
-                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
-                    title={sn.title || 'YouTube video'}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                )}
-              </div>
+        <div className="yt-watch-wrap">
 
-              {/* Title */}
-              <h1 className="yt-watch-title">{sn.title}</h1>
+          {/* ── Primary column ───────────────────────────────────────────── */}
+          <div className="yt-watch-primary">
 
-              {/* Actions row */}
-              <div className="yt-action-bar">
-                <div className="yt-action-group">
-                  <button
-                    className={`yt-like-btn${liked ? ' liked' : ''}`}
-                    onClick={() => setLiked((v) => !v)}
-                    aria-label="Like"
-                  >
-                    {liked ? <LikeFilled style={{ fontSize: 18 }} /> : <LikeOutlined style={{ fontSize: 18 }} />}
-                    <span>{formatCount(stats.likeCount || 0)}</span>
-                  </button>
-                  <button className="yt-dislike-btn" aria-label="Dislike">
-                    <DislikeOutlined style={{ fontSize: 18 }} />
-                  </button>
-                </div>
-                <div className="yt-action-group">
-                  <button className="yt-btn"><ShareAltOutlined /> Share</button>
-                  <button className="yt-btn"><DownloadOutlined /> Download</button>
-                  <button className="yt-btn" style={{ padding: '8px 12px' }}>
-                    <EllipsisOutlined style={{ fontSize: 20 }} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="yt-watch-meta">
-                {formatViewCount(stats.viewCount)}
-                {sn.publishedAt ? `  •  ${timeAgo(sn.publishedAt)}` : ''}
-              </div>
-
-              {/* Channel strip */}
-              <div className="yt-ch-strip">
-                <div
-                  className="yt-ch-img"
-                  style={{
-                    background: avatarColor(sn.channelTitle),
-                    overflow: 'hidden',
-                  }}
-                >
-                  {chSn.thumbnails?.default?.url ? (
-                    <img
-                      src={chSn.thumbnails.default.url}
-                      alt={sn.channelTitle}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    (sn.channelTitle || 'U')[0].toUpperCase()
-                  )}
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span className="yt-ch-name">{sn.channelTitle}</span>
-                    <CheckCircleFilled style={{ color: '#aaa', fontSize: 14 }} />
-                  </div>
-                  <div className="yt-ch-subs">
-                    {chStats.subscriberCount
-                      ? `${formatCount(chStats.subscriberCount)} subscribers`
-                      : ''}
-                  </div>
-                </div>
-                <button
-                  className={`yt-sub-btn${subscribed ? ' subscribed' : ''}`}
-                  onClick={() => setSubscribed((v) => !v)}
-                >
-                  {subscribed ? (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <BellFilled style={{ fontSize: 14 }} /> Subscribed
-                    </span>
-                  ) : 'Subscribe'}
-                </button>
-              </div>
-
-              {/* Description */}
-              <div className="yt-desc-box" onClick={() => setDescOpen((v) => !v)}>
-                <div className="yt-desc-stats">
-                  {formatViewCount(stats.viewCount)}&nbsp;&nbsp;
-                  {pubDate}
-                </div>
-                {tags.length > 0 && (
-                  <div className="yt-desc-tags">{tags.map((t) => `#${t}`).join('  ')}</div>
-                )}
-                <div
-                  className="yt-desc-body"
-                  style={{ maxHeight: descOpen ? 'none' : 80 }}
-                >
-                  {sn.description || 'No description available.'}
-                </div>
-                <div className="yt-desc-toggle">{descOpen ? 'Show less' : 'Show more'}</div>
-              </div>
-
-              {/* Comments */}
-              <CommentSection videoId={videoId} commentCount={stats.commentCount} />
+            {/* Player renders IMMEDIATELY — before API data loads so the
+                user-gesture (click) is still valid for autoplay */}
+            <div className="yt-player">
+              {videoId && (
+                <iframe
+                  key={videoId}
+                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
+                  title={sn.title || 'YouTube video'}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              )}
             </div>
 
-            {/* ── Related videos ─────────────────────────────────────────── */}
-            <div className="yt-watch-secondary">
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12, color: '#aaa' }}>
-                Up next
+            {/* Metadata — skeleton until API responds */}
+            {vLoading ? (
+              <div style={{ padding: '12px 0' }}>
+                <div className="yt-skel" style={{ height: 24, width: '72%', marginBottom: 12 }} />
+                <div className="yt-skel" style={{ height: 16, width: '40%', marginBottom: 16 }} />
+                <div className="yt-skel" style={{ height: 56, borderRadius: 12 }} />
               </div>
-              {related.length === 0
-                ? Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="yt-rel-card" style={{ pointerEvents: 'none' }}>
-                      <div className="yt-skel" style={{ width: 168, flexShrink: 0, aspectRatio: '16/9', borderRadius: 8 }} />
-                      <div style={{ flex: 1 }}>
-                        <div className="yt-skel" style={{ height: 12, marginBottom: 6, width: '90%' }} />
-                        <div className="yt-skel" style={{ height: 12, marginBottom: 4, width: '70%' }} />
-                        <div className="yt-skel" style={{ height: 12, width: '50%' }} />
-                      </div>
+            ) : (
+              <>
+                <h1 className="yt-watch-title">{sn.title}</h1>
+
+                {/* Actions */}
+                <div className="yt-action-bar">
+                  <div className="yt-action-group">
+                    <button
+                      className={`yt-like-btn${liked ? ' liked' : ''}`}
+                      onClick={() => setLiked((v) => !v)}
+                      aria-label="Like"
+                    >
+                      {liked
+                        ? <LikeFilled style={{ fontSize: 18 }} />
+                        : <LikeOutlined style={{ fontSize: 18 }} />}
+                      <span>{formatCount(stats.likeCount || 0)}</span>
+                    </button>
+                    <button className="yt-dislike-btn" aria-label="Dislike">
+                      <DislikeOutlined style={{ fontSize: 18 }} />
+                    </button>
+                  </div>
+                  <div className="yt-action-group">
+                    <button className="yt-btn"><ShareAltOutlined /> Share</button>
+                    <button className="yt-btn"><DownloadOutlined /> Download</button>
+                    <button className="yt-btn" style={{ padding: '8px 12px' }}>
+                      <EllipsisOutlined style={{ fontSize: 20 }} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="yt-watch-meta">
+                  {formatViewCount(stats.viewCount)}
+                  {sn.publishedAt ? `  •  ${timeAgo(sn.publishedAt)}` : ''}
+                </div>
+
+                {/* Channel strip */}
+                <div className="yt-ch-strip">
+                  <div className="yt-ch-img" style={{ background: avatarColor(sn.channelTitle), overflow: 'hidden' }}>
+                    {chSn.thumbnails?.default?.url ? (
+                      <img src={chSn.thumbnails.default.url} alt={sn.channelTitle}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      (sn.channelTitle || 'U')[0].toUpperCase()
+                    )}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span className="yt-ch-name">{sn.channelTitle}</span>
+                      <CheckCircleFilled style={{ color: '#aaa', fontSize: 14 }} />
                     </div>
-                  ))
-                : related.map((v) => (
-                    <RelCard key={getVideoId(v) || Math.random()} video={v} />
-                  ))}
-            </div>
+                    <div className="yt-ch-subs">
+                      {chStats.subscriberCount
+                        ? `${formatCount(chStats.subscriberCount)} subscribers`
+                        : ''}
+                    </div>
+                  </div>
+                  <button
+                    className={`yt-sub-btn${subscribed ? ' subscribed' : ''}`}
+                    onClick={() => setSubscribed((v) => !v)}
+                  >
+                    {subscribed
+                      ? <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <BellFilled style={{ fontSize: 14 }} /> Subscribed
+                        </span>
+                      : 'Subscribe'}
+                  </button>
+                </div>
+
+                {/* Description */}
+                <div className="yt-desc-box" onClick={() => setDescOpen((v) => !v)}>
+                  <div className="yt-desc-stats">
+                    {formatViewCount(stats.viewCount)}&nbsp;&nbsp;{pubDate}
+                  </div>
+                  {tags.length > 0 && (
+                    <div className="yt-desc-tags">{tags.map((t) => `#${t}`).join('  ')}</div>
+                  )}
+                  <div className="yt-desc-body" style={{ maxHeight: descOpen ? 'none' : 80 }}>
+                    {sn.description || 'No description available.'}
+                  </div>
+                  <div className="yt-desc-toggle">{descOpen ? 'Show less' : 'Show more'}</div>
+                </div>
+
+                {/* Comments */}
+                <CommentSection videoId={videoId} commentCount={stats.commentCount} />
+              </>
+            )}
           </div>
-        )}
+
+          {/* ── Related videos sidebar ───────────────────────────────────── */}
+          <div className="yt-watch-secondary">
+            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12, color: '#aaa' }}>
+              Up next
+            </div>
+            {related.length === 0
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="yt-rel-card" style={{ pointerEvents: 'none' }}>
+                    <div className="yt-skel" style={{ width: 168, flexShrink: 0, aspectRatio: '16/9', borderRadius: 8 }} />
+                    <div style={{ flex: 1 }}>
+                      <div className="yt-skel" style={{ height: 12, marginBottom: 6, width: '90%' }} />
+                      <div className="yt-skel" style={{ height: 12, marginBottom: 4, width: '70%' }} />
+                      <div className="yt-skel" style={{ height: 12, width: '50%' }} />
+                    </div>
+                  </div>
+                ))
+              : related.map((v) => (
+                  <RelCard key={getVideoId(v) || Math.random()} video={v} />
+                ))}
+          </div>
+        </div>
+
         <Footer />
       </main>
     </>
