@@ -16,7 +16,8 @@ export default function CategoryFeed({ categoryId, query, title, icon, regionCod
     dedupingInterval: 300_000,
   });
 
-  const videos = data?.items || [];
+  // Filter out null/undefined items — YouTube API occasionally includes them
+  const videos = (data?.items || []).filter(v => v?.snippet);
 
   return (
     <>

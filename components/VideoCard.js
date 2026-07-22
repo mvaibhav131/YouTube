@@ -3,6 +3,7 @@ import { formatViewCount, timeAgo, parseDuration, getThumbnail, getVideoId, avat
 
 export default function VideoCard({ video }) {
   const router = useRouter();
+  if (!video?.snippet) return null;          // YouTube API sometimes returns null items
   const snippet = video.snippet || {};
   const stats   = video.statistics || {};
   const dur     = parseDuration(video.contentDetails?.duration);

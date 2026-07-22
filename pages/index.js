@@ -20,7 +20,7 @@ export default function Home() {
     dedupingInterval: 300_000,
   });
 
-  const videos = data?.items || [];
+  const videos = (data?.items || []).filter(v => v?.snippet);
 
   return (
     <PageLayout title="YouTube">

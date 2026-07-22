@@ -28,7 +28,7 @@ export default function SearchPage() {
     { revalidateOnFocus: false, dedupingInterval: 60_000 }
   );
 
-  const results = data?.items || [];
+  const results = (data?.items || []).filter(v => v?.snippet);
 
   return (
     <PageLayout title={q ? q + ' - YouTube' : 'Search - YouTube'} defaultSidebar="mini">
