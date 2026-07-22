@@ -1,15 +1,21 @@
-import useSWR from 'swr';
-import VideoCard from './VideoCard';
-import VideoCardSkeleton from './VideoCardSkeleton';
-import { ytFetcher, API } from '../lib/youtube';
-import { getVideoId } from '../lib/utils';
+import useSWR from "swr";
+import VideoCard from "./VideoCard";
+import VideoCardSkeleton from "./VideoCardSkeleton";
+import { ytFetcher, API } from "../lib/youtube";
+import { getVideoId } from "../lib/utils";
 
-export default function CategoryFeed({ categoryId, query, title, icon, regionCode = 'IN' }) {
+export default function CategoryFeed({
+  categoryId,
+  query,
+  title,
+  icon,
+  regionCode = "IN",
+}) {
   const endpoint = query
     ? API.search(query, 24)
     : categoryId
-    ? API.categoryVideos(categoryId, regionCode, 24)
-    : API.trending(regionCode, 24);
+      ? API.categoryVideos(categoryId, regionCode, 24)
+      : API.trending(regionCode, 24);
 
   const { data, error, isLoading } = useSWR(endpoint, ytFetcher, {
     revalidateOnFocus: false,
@@ -17,16 +23,21 @@ export default function CategoryFeed({ categoryId, query, title, icon, regionCod
   });
 
   // Filter out null/undefined items — YouTube API occasionally includes them
-  const videos = (data?.items || []).filter(v => v?.snippet);
+  const videos = (data?.items || []).filter((v) => v?.snippet);
 
   return (
     <>
       {title && (
-        <div style={{
-          padding: '20px 24px 8px',
-          fontSize: 22, fontWeight: 700,
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}>
+        <div
+          style={{
+            padding: "20px 24px 8px",
+            fontSize: 22,
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
           {icon && <span style={{ fontSize: 26 }}>{icon}</span>}
           {title}
         </div>
@@ -36,14 +47,18 @@ export default function CategoryFeed({ categoryId, query, title, icon, regionCod
         <div className="yt-empty">
           <div className="yt-empty-icon">😕</div>
           <div className="yt-empty-title">Couldn&apos;t load videos</div>
-          <div className="yt-empty-sub">Check your API key or try again later.</div>
+          <div className="yt-empty-sub">
+            Check your API key or try again later.
+          </div>
         </div>
       )}
 
       {!error && (
         <div className="yt-grid">
           {isLoading
-            ? Array.from({ length: 20 }).map((_, i) => <VideoCardSkeleton key={i} />)
+            ? Array.from({ length: 20 }).map((_, i) => (
+                <VideoCardSkeleton key={i} />
+              ))
             : videos.map((v) => (
                 <VideoCard key={getVideoId(v) || Math.random()} video={v} />
               ))}

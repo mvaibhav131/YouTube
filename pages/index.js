@@ -1,26 +1,26 @@
-﻿import { useState } from 'react';
-import useSWR from 'swr';
-import PageLayout from '../components/PageLayout';
-import VideoCard from '../components/VideoCard';
-import VideoCardSkeleton from '../components/VideoCardSkeleton';
-import CategoryFilter from '../components/CategoryFilter';
-import { ytFetcher, API } from '../lib/youtube';
-import { getVideoId } from '../lib/utils';
+﻿import { useState } from "react";
+import useSWR from "swr";
+import PageLayout from "../components/PageLayout";
+import VideoCard from "../components/VideoCard";
+import VideoCardSkeleton from "../components/VideoCardSkeleton";
+import CategoryFilter from "../components/CategoryFilter";
+import { ytFetcher, API } from "../lib/youtube";
+import { getVideoId } from "../lib/utils";
 
 export default function Home() {
-  const [category, setCategory] = useState('all');
+  const [category, setCategory] = useState("all");
 
   const endpoint =
-    category === 'all'
-      ? API.trending('IN', 24)
-      : API.categoryVideos(category, 'IN', 24);
+    category === "all"
+      ? API.trending("IN", 24)
+      : API.categoryVideos(category, "IN", 24);
 
   const { data, error, isLoading } = useSWR(endpoint, ytFetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 300_000,
   });
 
-  const videos = (data?.items || []).filter(v => v?.snippet);
+  const videos = (data?.items || []).filter((v) => v?.snippet);
 
   return (
     <PageLayout title="YouTube">
@@ -35,7 +35,9 @@ export default function Home() {
       {!error && (
         <div className="yt-grid">
           {isLoading
-            ? Array.from({ length: 20 }).map((_, i) => <VideoCardSkeleton key={i} />)
+            ? Array.from({ length: 20 }).map((_, i) => (
+                <VideoCardSkeleton key={i} />
+              ))
             : videos.map((v) => (
                 <VideoCard key={getVideoId(v) || Math.random()} video={v} />
               ))}
