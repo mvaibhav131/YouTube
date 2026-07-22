@@ -10,7 +10,7 @@ import {
 import Header from '../../components/Header';
 import Sidebar from '../../components/Sidebar';
 import Footer from '../../components/Footer';
-import { ytFetcher, API, fetchVideoDetails, fetchChannelDetails } from '../../lib/youtube';import {
+import { ytFetcher, API } from '../../lib/youtube';import {
   formatViewCount, formatCount, timeAgo, parseDuration,
   getThumbnail, getVideoId, avatarColor,
 } from '../../lib/utils';
@@ -165,7 +165,7 @@ function WatchSkeleton() {
 }
 
 // ── Main watch page ────────────────────────────────────────────────────────
-export default function WatchPage({ initialVideo, initialChannel }) {
+export default function WatchPage() {
   const router   = useRouter();
   const { videoId } = router.query;
 
@@ -181,11 +181,11 @@ export default function WatchPage({ initialVideo, initialChannel }) {
   const toggleMenu = () =>
     setSidebar((s) => (s === 'mini' ? 'hidden' : 'mini'));
 
-  // Video details (hydrate from SSR, keep fresh via SWR)
+  // Video details — pure CSR, no SSR blocking (keeps autoplay gesture fresh)
   const { data: vData, isLoading: vLoading } = useSWR(
     videoId ? API.videoDetails(videoId) : null,
     ytFetcher,
-    { fallbackData: initialVideo, revalidateOnFocus: false, dedupingInterval: 300_000 }
+    { revalidateOnFocus: false, dedupingInterval: 300_000 }
   );
 
   const video   = vData?.items?.[0];
@@ -196,7 +196,7 @@ export default function WatchPage({ initialVideo, initialChannel }) {
   const { data: chData } = useSWR(
     sn.channelId ? API.channel(sn.channelId) : null,
     ytFetcher,
-    { fallbackData: initialChannel, revalidateOnFocus: false, dedupingInterval: 600_000 }
+    { revalidateOnFocus: false, dedupingInterval: 600_000 }
   );
   const channel   = chData?.items?.[0];
   const chSn      = channel?.snippet    || {};
@@ -210,7 +210,7 @@ export default function WatchPage({ initialVideo, initialChannel }) {
     { revalidateOnFocus: false, dedupingInterval: 300_000 }
   );
   const related = (relData?.items || [])
-    .filter(Boolean)                           // remove null API entries
+    .filter(v => v?.snippet)                   // remove null/incomplete items
     .filter((v) => getVideoId(v) !== videoId);
 
   const tags      = (sn.tags || []).slice(0, 6);
@@ -376,20 +376,4 @@ export default function WatchPage({ initialVideo, initialChannel }) {
   );
 }
 
-// ── SSR: pre-fetch video + channel details ─────────────────────────────────
-export async function getServerSideProps({ params }) {
-  const { videoId } = params;
-  try {
-    const videoData = await fetchVideoDetails(videoId);
-    const channelId = videoData?.items?.[0]?.snippet?.channelId;
-    const channelData = channelId ? await fetchChannelDetails(channelId) : null;
-    return {
-      props: {
-        initialVideo:   videoData   ?? null,
-        initialChannel: channelData ?? null,
-      },
-    };
-  } catch {
-    return { props: { initialVideo: null, initialChannel: null } };
-  }
-}
+

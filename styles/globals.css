@@ -247,12 +247,21 @@ button { font-family: inherit; }
   .yt-watch-secondary { width: 100%; max-height: none; }
 }
 
-/* Player */
+/* Player — use position:absolute trick, not height:100% which breaks in Chrome with aspect-ratio parents */
 .yt-player {
-  width: 100%; aspect-ratio: 16/9; background: #000;
-  border-radius: 12px; overflow: hidden;
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 = 9/16 = 56.25% */
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
 }
-.yt-player iframe { width: 100%; height: 100%; border: none; }
+.yt-player iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  border: none;
+}
 
 /* Watch title + actions */
 .yt-watch-title {
