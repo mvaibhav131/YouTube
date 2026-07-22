@@ -73,7 +73,9 @@ function CommentSection({ videoId, commentCount }) {
     { revalidateOnFocus: false, dedupingInterval: 300_000 }
   );
 
-  const realComments = !cError && cData?.items?.length > 0 ? cData.items : null;
+  const realComments = !cError && cData?.items?.length > 0
+    ? cData.items.filter(c => c?.snippet?.topLevelComment?.snippet)
+    : null;
   const total = cData?.pageInfo?.totalResults || commentCount;
 
   return (
@@ -89,9 +91,10 @@ function CommentSection({ videoId, commentCount }) {
       {/* Real comments */}
       {realComments &&
         realComments.map((c) => {
-          const sn = c.snippet.topLevelComment.snippet;
-          const text = sn.textOriginal || decodeHtml(sn.textDisplay);
-          const replyCount = c.snippet.totalReplyCount || 0;
+          const sn = c?.snippet?.topLevelComment?.snippet;
+          if (!sn) return null;
+          const text = sn.textOriginal || decodeHtml(sn.textDisplay || '');
+          const replyCount = c?.snippet?.totalReplyCount || 0;
           return (
             <div key={c.id} className="yt-comment">
               <div
