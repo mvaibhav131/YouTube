@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
-/* ── Design tokens ─────────────────────────────────────────────────────────── */
+/* ── Design tokens — Dark (default) ───────────────────────────────────────── */
 :root {
   --yt-bg:           #0f0f0f;
   --yt-surface:      #212121;
@@ -13,6 +13,17 @@
   --header-h:        56px;
   --sidebar-w:       240px;
   --sidebar-mini-w:  72px;
+}
+
+/* ── Design tokens — Light ─────────────────────────────────────────────────── */
+:root.light {
+  --yt-bg:       #ffffff;
+  --yt-surface:  #f2f2f2;
+  --yt-surface-2:#e5e5e5;
+  --yt-text:     #0f0f0f;
+  --yt-text-2:   #606060;
+  --yt-border:   #cccccc;
+  --yt-blue:     #065fd4;
 }
 
 /* ── Reset ─────────────────────────────────────────────────────────────────── */

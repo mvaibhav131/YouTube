@@ -9,7 +9,10 @@ import {
   AppstoreOutlined,
   BellOutlined,
   UserOutlined,
+  SunOutlined,
+  MoonOutlined,
 } from '@ant-design/icons';
+import { useTheme } from '../lib/ThemeContext';
 
 const YTPlayIcon = () => (
   <svg viewBox="0 0 28 20" width="28" height="20" fill="none">
@@ -22,6 +25,7 @@ const YTPlayIcon = () => (
 );
 
 export default function Header({ onMenuClick }) {
+  const { isDark, toggle } = useTheme();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const inputRef = useRef(null);
@@ -76,6 +80,14 @@ export default function Header({ onMenuClick }) {
         </button>
         <button className="yt-icon-btn hide-mobile" aria-label="YouTube apps">
           <AppstoreOutlined />
+        </button>
+        <button
+          className="yt-icon-btn hide-mobile"
+          onClick={toggle}
+          aria-label="Toggle theme"
+          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {isDark ? <SunOutlined /> : <MoonOutlined />}
         </button>
         <button className="yt-icon-btn" aria-label="Notifications" style={{ position: 'relative' }}>
           <BellOutlined />
