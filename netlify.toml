@@ -7,3 +7,14 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# ── API routes must NEVER be cached by Netlify's edge CDN ─────────────────
+# Without this, /api/yt?q=Pushpa and /api/yt?q=Avengers return the same
+# cached response (Netlify ignores query params for cache keying by default).
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control    = "no-store, no-cache, must-revalidate, max-age=0"
+    Surrogate-Control = "no-store"
+    Pragma           = "no-cache"
+    Vary             = "*"
