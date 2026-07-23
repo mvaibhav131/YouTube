@@ -1,10 +1,8 @@
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { UserOutlined, CloseOutlined, CheckCircleFilled } from '@ant-design/icons';
 import { useStore } from '../lib/store';
 
 export default function AuthWall({ section, description }) {
-  const router = useRouter();
   const { user } = useStore();
 
   // If user is logged in — show a "coming soon" instead of auth wall
@@ -34,7 +32,9 @@ export default function AuthWall({ section, description }) {
     }}>
       {/* ✕ Close button — top right */}
       <button
-        onClick={() => router.back()}
+        onClick={() => {
+          if (typeof window !== 'undefined') window.history.back();
+        }}
         title="Close"
         style={{
           position: 'absolute', top: 0, right: 24,

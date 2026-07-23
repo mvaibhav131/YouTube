@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import Link from "next/link";
 import {
   formatViewCount,
   timeAgo,
@@ -9,47 +9,30 @@ import {
 } from "../lib/utils";
 
 export default function VideoCard({ video }) {
-  const router = useRouter();
-  if (!video?.snippet) return null; // YouTube API sometimes returns null items
+  if (!video?.snippet) return null;
   const snippet = video.snippet || {};
   const stats = video.statistics || {};
   const dur = parseDuration(video.contentDetails?.duration);
   const thumb = getThumbnail(snippet, "high");
   const vidId = getVideoId(video);
   const initial = (snippet.channelTitle || "U")[0].toUpperCase();
+  const href = vidId ? `/watch/${vidId}` : '#';
 
   return (
-    <div
-      className="yt-card"
-      onClick={() => vidId && router.push(`/watch/${vidId}`)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) =>
-        e.key === "Enter" && vidId && router.push(`/watch/${vidId}`)
-      }
-    >
+    <Link href={href} className="yt-card" style={{ display: 'block', textDecoration: 'none' }}>
       {/* Thumbnail */}
       <div className="thumb-wrap">
         {thumb ? (
           <img src={thumb} alt={snippet.title} loading="lazy" />
         ) : (
-          <div
-            style={{
-              width: "100%",
-              aspectRatio: "16/9",
-              background: "var(--yt-surface)",
-            }}
-          />
+          <div style={{ width: "100%", aspectRatio: "16/9", background: "var(--yt-surface)" }} />
         )}
         {dur && <span className="dur">{dur}</span>}
       </div>
 
       {/* Info */}
       <div className="card-body">
-        <div
-          className="ch-avatar"
-          style={{ background: avatarColor(snippet.channelTitle) }}
-        >
+        <div className="ch-avatar" style={{ background: avatarColor(snippet.channelTitle) }}>
           {initial}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -62,6 +45,6 @@ export default function VideoCard({ video }) {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

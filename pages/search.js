@@ -1,4 +1,4 @@
-﻿import { useRouter } from "next/router";
+import { useRouter } from "next/router";
 import useSWR from "swr";
 import { CheckCircleFilled } from "@ant-design/icons";
 import PageLayout from "../components/PageLayout";
@@ -126,7 +126,4 @@ export default function SearchPage() {
     </PageLayout>
   );
 }
-
-export async function getServerSideProps() {
-  return { props: {} };
-}
+export async function getServerSideProps() { return { props: {} }; }

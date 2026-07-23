@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
-import Header from './Header';
 import Footer from './Footer';
 
-// Sidebar uses useRouter() — load client-only to avoid static-generation throws
+// Both Header and Sidebar use useRouter() — load client-only so static pages
+// never throw "NextRouter was not mounted" during build.
+const Header  = dynamic(() => import('./Header'),  { ssr: false });
 const Sidebar = dynamic(() => import('./Sidebar'), { ssr: false });
 
 /**
