@@ -1,35 +1,66 @@
-import { UserOutlined } from '@ant-design/icons';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { UserOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 
 export default function AuthWall({ section, description }) {
+  const router = useRouter();
+
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
       minHeight: '60vh', gap: 16, padding: 24,
-      color: 'var(--yt-text)',
+      color: 'var(--yt-text)', position: 'relative',
     }}>
+      {/* Back button — top left */}
+      <button
+        onClick={() => router.back()}
+        style={{
+          position: 'absolute', top: 0, left: 24,
+          background: 'transparent', border: 'none',
+          cursor: 'pointer', display: 'flex', alignItems: 'center',
+          gap: 6, color: 'var(--yt-text-2)', fontSize: 14, fontFamily: 'inherit',
+          padding: '8px 0',
+        }}
+      >
+        <ArrowLeftOutlined /> Go back
+      </button>
+
       <div style={{
         width: 96, height: 96, borderRadius: '50%',
         background: 'var(--yt-surface)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginTop: 40,
       }}>
         <UserOutlined style={{ fontSize: 48, color: '#aaa' }} />
       </div>
+
       <h2 style={{ fontSize: 20, fontWeight: 600 }}>Enjoy your {section}</h2>
       <p style={{ color: '#aaa', fontSize: 15, textAlign: 'center', maxWidth: 380, lineHeight: 1.6 }}>
         {description || `Sign in to see your ${section.toLowerCase()} and other personalised info.`}
       </p>
-      <button style={{
-        background: 'transparent',
-        border: '1px solid var(--yt-blue)',
-        color: 'var(--yt-blue)',
-        padding: '10px 22px', borderRadius: 20,
-        cursor: 'pointer', fontSize: 14, fontWeight: 600,
-        display: 'flex', alignItems: 'center', gap: 8,
-        fontFamily: 'inherit',
-      }}>
-        <UserOutlined /> Sign in
-      </button>
+
+      {/* Sign in button — properly linked */}
+      <Link href="/login" style={{ textDecoration: 'none' }}>
+        <span style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: 'transparent',
+          border: '1px solid var(--yt-blue)',
+          color: 'var(--yt-blue)',
+          padding: '10px 22px', borderRadius: 20,
+          cursor: 'pointer', fontSize: 14, fontWeight: 600,
+        }}>
+          <UserOutlined /> Sign in
+        </span>
+      </Link>
+
+      <p style={{ fontSize: 13, color: 'var(--yt-text-2)', marginTop: 4 }}>
+        Don&apos;t have an account?{' '}
+        <Link href="/signup" style={{ color: 'var(--yt-blue)', textDecoration: 'none' }}>
+          Create one
+        </Link>
+      </p>
     </div>
   );
 }
+
