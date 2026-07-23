@@ -65,15 +65,19 @@ export default async function handler(req, res) {
   const timer = setTimeout(() => controller.abort(), 10000);
 
   try {
+    // Next.js 16 inbuilt fetch cache — revalidate every 45s for trending, 5min for others
+    const revalidate = type === 'trending' ? 45 : 300;
+
     const ytRes = await fetch(`${BASE_URL}${path}&key=${API_KEY}`, {
       signal: controller.signal,
       headers: { Accept: 'application/json' },
+      next: { revalidate },   // ← Next.js 16 inbuilt data cache
     });
     clearTimeout(timer);
 
     const data = await ytRes.json();
-    const ttl = type === 'trending' ? 600 : 300;
-    res.setHeader('Cache-Control', `s-maxage=${ttl}, stale-while-revalidate=120`);
+    // Also set HTTP Cache-Control for CDN/browser
+    res.setHeader('Cache-Control', `s-maxage=${revalidate}, stale-while-revalidate=60`);
     return res.status(ytRes.status).json(data);
   } catch (err) {
     clearTimeout(timer);

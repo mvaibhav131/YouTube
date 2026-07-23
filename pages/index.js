@@ -8,6 +8,17 @@ import { ytFetcher, API } from '../lib/youtube';
 import { getVideoId } from '../lib/utils';
 
 const PAGE_SIZE = 16;
+const FETCH_SIZE = 50; // Fetch more than we show so we can shuffle for variety
+
+// Fisher-Yates shuffle — different order every reload
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 export default function Home() {
   const [category, setCategory] = useState('all');
@@ -17,15 +28,16 @@ export default function Home() {
   const [initialDone, setInitialDone] = useState(false);
   const loaderRef = useRef(null);
 
-  // Initial fetch via SWR (cached)
+  // Initial fetch via SWR — short 45s dedup to match server revalidate
   const firstEndpoint =
     category === 'all'
-      ? API.trending('IN', PAGE_SIZE)
-      : API.categoryVideos(category, 'IN', PAGE_SIZE);
+      ? API.trending('IN', FETCH_SIZE)
+      : API.categoryVideos(category, 'IN', FETCH_SIZE);
 
   const { data: firstPage, error, isLoading } = useSWR(firstEndpoint, ytFetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 300_000,
+    revalidateOnFocus: true,       // refetch when tab gets focus
+    revalidateOnReconnect: true,
+    dedupingInterval: 45_000,      // matches server revalidate (45s)
   });
 
   // Reset when category changes
@@ -35,10 +47,12 @@ export default function Home() {
     setInitialDone(false);
   }, [category]);
 
-  // Populate first page
+  // Populate first page — shuffle for variety on each load
   useEffect(() => {
     if (firstPage && !initialDone) {
-      setVideos((firstPage.items || []).filter((v) => v?.snippet));
+      const all = (firstPage.items || []).filter((v) => v?.snippet);
+      const shuffled = shuffle(all);            // different order every reload
+      setVideos(shuffled.slice(0, PAGE_SIZE));  // show first 16
       setNextPageToken(firstPage.nextPageToken || '');
       setInitialDone(true);
     }
