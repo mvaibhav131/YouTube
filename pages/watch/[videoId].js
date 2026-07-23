@@ -10,7 +10,8 @@ import {
 import Header from '../../components/Header';
 import Sidebar from '../../components/Sidebar';
 import Footer from '../../components/Footer';
-import { ytFetcher, API } from '../../lib/youtube';import {
+import { ytFetcher, API } from '../../lib/youtube';
+import { useStore } from '../../lib/store';import {
   formatViewCount, formatCount, timeAgo, parseDuration,
   getThumbnail, getVideoId, avatarColor,
 } from '../../lib/utils';
@@ -171,11 +172,10 @@ function WatchSkeleton() {
 export default function WatchPage() {
   const router   = useRouter();
   const { videoId } = router.query;
+  const { isLiked, isSubscribed, toggleLike, toggleSubscribe, addHistory } = useStore();
 
-  const [sidebar,     setSidebar]     = useState('hidden');
-  const [descOpen,    setDescOpen]    = useState(false);
-  const [liked,       setLiked]       = useState(false);
-  const [subscribed,  setSubscribed]  = useState(false);
+  const [sidebar,  setSidebar]  = useState('hidden');
+  const [descOpen, setDescOpen] = useState(false);
 
   useEffect(() => {
     if (window.innerWidth >= 1280) setSidebar('mini');
@@ -213,13 +213,22 @@ export default function WatchPage() {
     { revalidateOnFocus: false, dedupingInterval: 300_000 }
   );
   const related = (relData?.items || [])
-    .filter(v => v?.snippet)                   // remove null/incomplete items
+    .filter(v => v?.snippet)
     .filter((v) => getVideoId(v) !== videoId);
 
-  const tags      = (sn.tags || []).slice(0, 6);
-  const pubDate   = sn.publishedAt
+  const tags    = (sn.tags || []).slice(0, 6);
+  const pubDate = sn.publishedAt
     ? new Date(sn.publishedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })
     : '';
+
+  // Track watch history when video data loads
+  useEffect(() => {
+    if (video && videoId) addHistory({ id: videoId, snippet: sn });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoId, video]);
+
+  const liked      = isLiked(videoId);
+  const subscribed = isSubscribed(sn.channelId);
 
   return (
     <>
@@ -272,7 +281,7 @@ export default function WatchPage() {
                   <div className="yt-action-group">
                     <button
                       className={`yt-like-btn${liked ? ' liked' : ''}`}
-                      onClick={() => setLiked((v) => !v)}
+                      onClick={() => video && toggleLike({ id: videoId, snippet: sn })}
                       aria-label="Like"
                     >
                       {liked
@@ -321,7 +330,9 @@ export default function WatchPage() {
                   </div>
                   <button
                     className={`yt-sub-btn${subscribed ? ' subscribed' : ''}`}
-                    onClick={() => setSubscribed((v) => !v)}
+                    onClick={() => sn.channelId && toggleSubscribe({
+                      id: sn.channelId, title: sn.channelTitle, snippet: chSn
+                    })}
                   >
                     {subscribed
                       ? <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

@@ -2,10 +2,11 @@
 import { ConfigProvider, App as AntApp, theme } from 'antd';
 import Head from 'next/head';
 import { ThemeCtx } from '../lib/ThemeContext';
+import { StoreProvider } from '../lib/store';
 import '../styles/globals.css';
 
 export default function App({ Component, pageProps }) {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false); // default: light
 
   // Read saved preference on first load
   useEffect(() => {
@@ -47,7 +48,8 @@ export default function App({ Component, pageProps }) {
   };
 
   return (
-    <ThemeCtx.Provider value={{ isDark, toggle }}>
+    <StoreProvider>
+      <ThemeCtx.Provider value={{ isDark, toggle }}>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
@@ -66,6 +68,7 @@ export default function App({ Component, pageProps }) {
           <Component {...pageProps} />
         </AntApp>
       </ConfigProvider>
-    </ThemeCtx.Provider>
+      </ThemeCtx.Provider>
+    </StoreProvider>
   );
 }

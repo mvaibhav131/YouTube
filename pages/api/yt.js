@@ -5,12 +5,17 @@ const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 const HANDLERS = {
   trending: (p) => {
     const region = /^[A-Z]{2}$/.test(p.regionCode || '') ? p.regionCode : 'IN';
-    const max = Math.min(Math.max(parseInt(p.maxResults) || 24, 1), 50);
+    const max = Math.min(Math.max(parseInt(p.maxResults) || 16, 1), 50);
     const cat =
       p.categoryId && /^\d{1,3}$/.test(p.categoryId)
         ? `&videoCategoryId=${p.categoryId}`
         : '';
-    return `/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${region}&maxResults=${max}${cat}`;
+    // pageToken for pagination (base64-like chars only)
+    const pt =
+      p.pageToken && /^[a-zA-Z0-9_\-=+/]+$/.test(p.pageToken)
+        ? `&pageToken=${encodeURIComponent(p.pageToken)}`
+        : '';
+    return `/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${region}&maxResults=${max}${cat}${pt}`;
   },
 
   search: (p) => {
