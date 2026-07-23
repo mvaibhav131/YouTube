@@ -1,18 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import {
   ArrowLeftOutlined,
   SearchOutlined,
   AudioOutlined,
   AudioMutedOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 
 export default function MobileSearch({ onClose }) {
   const router = useRouter();
   const inputRef = useRef(null);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [isListening, setIsListening] = useState(false);
-  const [voiceError, setVoiceError] = useState('');
+  const [voiceError, setVoiceError] = useState("");
 
   // Auto-focus when overlay opens
   useEffect(() => {
@@ -21,10 +21,19 @@ export default function MobileSearch({ onClose }) {
 
   // Close on Escape key
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    const handler = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  // Auto-close as soon as any navigation starts (handles SSR round-trip delay)
+  useEffect(() => {
+    const close = () => onClose();
+    router.events?.on("routeChangeStart", close);
+    return () => router.events?.off("routeChangeStart", close);
+  }, [router.events, onClose]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -38,39 +47,47 @@ export default function MobileSearch({ onClose }) {
   const handleVoice = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
-      setVoiceError('Voice search is not supported. Please use Chrome or Edge.');
+      setVoiceError(
+        "Voice search is not supported. Please use Chrome or Edge.",
+      );
       return;
     }
 
     const rec = new SR();
-    rec.lang = 'en-IN';
+    rec.lang = "en-IN";
     rec.continuous = false;
     rec.interimResults = false;
 
     setIsListening(true);
-    setVoiceError('');
+    setVoiceError("");
 
     rec.onresult = (e) => {
       const transcript = e.results[0][0].transcript;
       setIsListening(false);
+      onClose(); // close FIRST
       router.push(`/search?q=${encodeURIComponent(transcript)}`);
-      onClose();
     };
 
     rec.onerror = (e) => {
       setIsListening(false);
-      if (e.error === 'not-allowed') {
-        setVoiceError('Microphone access denied. Allow access in your browser settings.');
-      } else if (e.error === 'no-speech') {
-        setVoiceError('No speech detected. Please try again.');
+      if (e.error === "not-allowed") {
+        setVoiceError(
+          "Microphone access denied. Allow access in your browser settings.",
+        );
+      } else if (e.error === "no-speech") {
+        setVoiceError("No speech detected. Please try again.");
       } else {
-        setVoiceError('Voice search failed. Please try again.');
+        setVoiceError("Voice search failed. Please try again.");
       }
     };
 
     rec.onend = () => setIsListening(false);
 
-    try { rec.start(); } catch { setIsListening(false); }
+    try {
+      rec.start();
+    } catch {
+      setIsListening(false);
+    }
   };
 
   return (
@@ -105,15 +122,16 @@ export default function MobileSearch({ onClose }) {
 
           <button
             type="button"
-            className={`yt-icon-btn${isListening ? ' voice-active' : ''}`}
+            className={`yt-icon-btn${isListening ? " voice-active" : ""}`}
             onClick={handleVoice}
-            aria-label={isListening ? 'Listening…' : 'Search by voice'}
+            aria-label={isListening ? "Listening…" : "Search by voice"}
             title="Search by voice"
           >
-            {isListening
-              ? <AudioMutedOutlined style={{ fontSize: 18, color: '#ff0000' }} />
-              : <AudioOutlined style={{ fontSize: 18 }} />
-            }
+            {isListening ? (
+              <AudioMutedOutlined style={{ fontSize: 18, color: "#ff0000" }} />
+            ) : (
+              <AudioOutlined style={{ fontSize: 18 }} />
+            )}
           </button>
         </form>
 
@@ -124,16 +142,23 @@ export default function MobileSearch({ onClose }) {
               <div className="voice-ring r1" />
               <div className="voice-ring r2" />
               <div className="voice-ring r3" />
-              <AudioOutlined style={{ fontSize: 36, color: '#ff0000', position: 'relative', zIndex: 1 }} />
+              <AudioOutlined
+                style={{
+                  fontSize: 36,
+                  color: "#ff0000",
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              />
             </div>
-            <p style={{ color: 'var(--yt-text-2)', marginTop: 16 }}>Listening…</p>
+            <p style={{ color: "var(--yt-text-2)", marginTop: 16 }}>
+              Listening…
+            </p>
           </div>
         )}
 
         {/* Error message */}
-        {voiceError && (
-          <div className="voice-error">{voiceError}</div>
-        )}
+        {voiceError && <div className="voice-error">{voiceError}</div>}
       </div>
     </div>
   );
