@@ -37,9 +37,9 @@ export default function SearchPage() {
   const { q } = router.query;
 
   const { data, error, isLoading } = useSWR(
-    router.isReady && q ? API.search(q, 20) : null,
+    router.isReady && q ? API.search(q, 50) : null,
     ytFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 60_000 },
+    { revalidateOnFocus: false, dedupingInterval: 0 }, // no client-side cache for search
   );
 
   const results = (data?.items || []).filter((v) => v?.snippet);

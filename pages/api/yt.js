@@ -22,7 +22,9 @@ const HANDLERS = {
     if (!p.q) return null;
     const q = String(p.q).slice(0, 200);
     const max = Math.min(Math.max(parseInt(p.maxResults) || 24, 1), 50);
-    return `/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=${max}&order=relevance`;
+    // regionCode=IN + relevanceLanguage=hi ensures results match Indian users
+    // regardless of which server/CDN node handles the request (Netlify uses US servers)
+    return `/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=${max}&order=relevance&regionCode=IN&relevanceLanguage=hi`;
   },
 
   video: (p) => {

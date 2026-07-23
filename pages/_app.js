@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { ConfigProvider, App as AntApp, theme } from 'antd';
 import Head from 'next/head';
 import { ThemeCtx } from '../lib/ThemeContext';
@@ -6,6 +7,7 @@ import { StoreProvider } from '../lib/store';
 import '../styles/globals.css';
 
 export default function App({ Component, pageProps }) {
+  const router = useRouter();
   const [isDark, setIsDark] = useState(false); // default: light
 
   // Read saved preference on first load
@@ -65,7 +67,12 @@ export default function App({ Component, pageProps }) {
         }}
       >
         <AntApp>
-          <Component {...pageProps} />
+          {/* Force search page to fully remount on every new query so SWR
+              always fetches fresh results instead of showing stale data */}
+          <Component
+            key={router.pathname === '/search' ? router.asPath : router.pathname}
+            {...pageProps}
+          />
         </AntApp>
       </ConfigProvider>
       </ThemeCtx.Provider>
