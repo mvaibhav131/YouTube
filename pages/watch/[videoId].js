@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import useSWR from 'swr';
@@ -177,6 +177,108 @@ export default function WatchPage() {
   const [sidebar,  setSidebar]  = useState('hidden');
   const [descOpen, setDescOpen] = useState(false);
 
+  // ── YouTube IFrame Player API ──────────────────────────────────────────
+  const iframeRef    = useRef(null);
+  const playerRef    = useRef(null);
+  const [kbToast, setKbToast] = useState('');
+  const toastTimer   = useRef(null);
+
+  const showToast = (msg) => {
+    setKbToast(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setKbToast(''), 1200);
+  };
+
+  // Load YT IFrame API + create player once iframe is ready
+  useEffect(() => {
+    if (!videoId) return;
+
+    const createPlayer = () => {
+      if (!iframeRef.current) return;
+      // Attach to the existing iframe (it already has enablejsapi=1)
+      playerRef.current = new window.YT.Player(iframeRef.current);
+    };
+
+    if (window.YT?.Player) {
+      createPlayer();
+    } else {
+      if (!document.getElementById('yt-api-script')) {
+        const s = document.createElement('script');
+        s.id  = 'yt-api-script';
+        s.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(s);
+      }
+      window.onYouTubeIframeAPIReady = createPlayer;
+    }
+
+    return () => { try { playerRef.current?.destroy?.(); } catch {} };
+  }, [videoId]);
+
+  // ── Keyboard shortcuts ─────────────────────────────────────────────────
+  useEffect(() => {
+    const handle = (e) => {
+      const p = playerRef.current;
+      // Skip if typing in an input field
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      const cmd = (fn, msg) => {
+        e.preventDefault();
+        try { fn(p); showToast(msg); } catch {}
+      };
+
+      switch (e.key) {
+        case ' ':
+        case 'k': case 'K':
+          cmd(p => {
+            const s = p?.getPlayerState?.();
+            if (s === 1) p.pauseVideo(); else p?.playVideo?.();
+          }, p?.getPlayerState?.() === 1 ? '⏸ Pause' : '▶ Play');
+          break;
+        case 'm': case 'M':
+          cmd(p => {
+            if (p?.isMuted?.()) p.unMute(); else p?.mute?.();
+          }, p?.isMuted?.() ? '🔊 Unmuted' : '🔇 Muted');
+          break;
+        case 'ArrowUp':
+          cmd(p => { const v = Math.min(100, (p?.getVolume?.() || 50) + 10); p?.setVolume?.(v); }, `🔊 ${Math.min(100, (p?.getVolume?.() || 50) + 10)}%`);
+          break;
+        case 'ArrowDown':
+          cmd(p => { const v = Math.max(0, (p?.getVolume?.() || 50) - 10); p?.setVolume?.(v); }, `${Math.max(0, (p?.getVolume?.() || 50) - 10) === 0 ? '🔇' : '🔉'} ${Math.max(0, (p?.getVolume?.() || 50) - 10)}%`);
+          break;
+        case 'ArrowRight':
+          cmd(p => p?.seekTo?.((p?.getCurrentTime?.() || 0) + 5, true), '⏩ +5s');
+          break;
+        case 'ArrowLeft':
+          cmd(p => p?.seekTo?.(Math.max(0, (p?.getCurrentTime?.() || 0) - 5), true), '⏪ -5s');
+          break;
+        case 'j': case 'J':
+          cmd(p => p?.seekTo?.(Math.max(0, (p?.getCurrentTime?.() || 0) - 10), true), '⏪ -10s');
+          break;
+        case 'l': case 'L':
+          cmd(p => p?.seekTo?.((p?.getCurrentTime?.() || 0) + 10, true), '⏩ +10s');
+          break;
+        case 'f': case 'F': {
+          e.preventDefault();
+          const iframe = iframeRef.current;
+          if (!iframe) break;
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+            showToast('⬛ Exit fullscreen');
+          } else {
+            iframe.requestFullscreen?.();
+            showToast('⬜ Fullscreen');
+          }
+          break;
+        }
+        default: break;
+      }
+    };
+
+    window.addEventListener('keydown', handle);
+    return () => window.removeEventListener('keydown', handle);
+  });
+
   useEffect(() => {
     if (window.innerWidth >= 1280) setSidebar('mini');
   }, []);
@@ -251,17 +353,31 @@ export default function WatchPage() {
           {/* ── Primary column ───────────────────────────────────────────── */}
           <div className="yt-watch-primary">
 
-            {/* Player renders IMMEDIATELY — before API data loads so the
-                user-gesture (click) is still valid for autoplay */}
-            <div className="yt-player">
+            {/* Player renders IMMEDIATELY — iframe ref for keyboard API */}
+            <div className="yt-player" style={{ position: 'relative' }}>
               {videoId && (
                 <iframe
+                  ref={iframeRef}
                   key={videoId}
                   src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
                   title={sn.title || 'YouTube video'}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                 />
+              )}
+              {/* Keyboard shortcut toast */}
+              {kbToast && (
+                <div style={{
+                  position: 'absolute', top: '50%', left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  background: 'rgba(0,0,0,0.75)', color: '#fff',
+                  fontSize: 22, fontWeight: 600,
+                  padding: '12px 24px', borderRadius: 10,
+                  pointerEvents: 'none', zIndex: 10,
+                  letterSpacing: 0.5,
+                }}>
+                  {kbToast}
+                </div>
               )}
             </div>
 
