@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import useSWR from 'swr';
 import PageLayout from '../components/PageLayout';
 import VideoCard from '../components/VideoCard';
@@ -108,46 +108,3 @@ export default function Home() {
                 <span>Loading more…</span>
               </>
             )}
-          </div>
-        </>
-      )}
-    </PageLayout>
-  );
-}
-
-  const endpoint =
-    category === "all"
-      ? API.trending("IN", 24)
-      : API.categoryVideos(category, "IN", 24);
-
-  const { data, error, isLoading } = useSWR(endpoint, ytFetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 300_000,
-  });
-
-  const videos = (data?.items || []).filter((v) => v?.snippet);
-
-  return (
-    <PageLayout title="YouTube">
-      <CategoryFilter active={category} onChange={setCategory} />
-      {error && (
-        <div className="yt-empty">
-          <div className="yt-empty-icon">😕</div>
-          <div className="yt-empty-title">Could not load videos</div>
-          <div className="yt-empty-sub">Check your API key in .env.local</div>
-        </div>
-      )}
-      {!error && (
-        <div className="yt-grid">
-          {isLoading
-            ? Array.from({ length: 20 }).map((_, i) => (
-                <VideoCardSkeleton key={i} />
-              ))
-            : videos.map((v) => (
-                <VideoCard key={getVideoId(v) || Math.random()} video={v} />
-              ))}
-        </div>
-      )}
-    </PageLayout>
-  );
-}
