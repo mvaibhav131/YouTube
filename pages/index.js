@@ -108,3 +108,9 @@ export default function Home() {
                 <span>Loading more…</span>
               </>
             )}
+          </div>
+        </>
+      )}
+    </PageLayout>
+  );
+}
