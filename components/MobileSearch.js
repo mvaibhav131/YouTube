@@ -63,12 +63,14 @@ export default function MobileSearch({ onClose }) {
 
     rec.onresult = (e) => {
       const transcript = e.results[0][0].transcript;
+      rec.abort();          // stop mic immediately
       setIsListening(false);
-      onClose(); // close FIRST
+      onClose();            // close overlay first
       router.push(`/search?q=${encodeURIComponent(transcript)}`);
     };
 
     rec.onerror = (e) => {
+      rec.abort();
       setIsListening(false);
       if (e.error === "not-allowed") {
         setVoiceError(
@@ -128,9 +130,9 @@ export default function MobileSearch({ onClose }) {
             title="Search by voice"
           >
             {isListening ? (
-              <AudioMutedOutlined style={{ fontSize: 18, color: "#ff0000" }} />
+              <AudioOutlined style={{ fontSize: 18, color: "#ff0000" }} />
             ) : (
-              <AudioOutlined style={{ fontSize: 18 }} />
+              <AudioMutedOutlined style={{ fontSize: 18 }} />
             )}
           </button>
         </form>

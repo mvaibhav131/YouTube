@@ -64,11 +64,13 @@ export default function Header({ onMenuClick }) {
     setIsListening(true);
     rec.onresult = (e) => {
       const t = e.results[0][0].transcript;
+      rec.abort();          // stop mic immediately
       setIsListening(false);
       setQuery(t);
       router.push(`/search?q=${encodeURIComponent(t)}`);
     };
-    rec.onerror = rec.onend = () => setIsListening(false);
+    rec.onerror = () => { rec.abort(); setIsListening(false); };
+    rec.onend   = () => setIsListening(false);
     try {
       rec.start();
     } catch {
@@ -126,9 +128,9 @@ export default function Header({ onMenuClick }) {
             title="Search by voice"
           >
             {isListening ? (
-              <AudioMutedOutlined style={{ fontSize: 18, color: "#ff0000" }} />
+              <AudioOutlined style={{ fontSize: 18, color: "#ff0000" }} />
             ) : (
-              <AudioOutlined style={{ fontSize: 18 }} />
+              <AudioMutedOutlined style={{ fontSize: 18 }} />
             )}
           </button>
         </div>
