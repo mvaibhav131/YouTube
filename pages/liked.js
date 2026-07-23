@@ -40,3 +40,4 @@ export default function Liked() {
     </PageLayout>
   );
 }
+export async function getServerSideProps() { return { props: {} }; }

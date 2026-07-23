@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
 import Header from './Header';
-import Sidebar from './Sidebar';
 import Footer from './Footer';
+
+// Sidebar uses useRouter() — load client-only to avoid static-generation throws
+const Sidebar = dynamic(() => import('./Sidebar'), { ssr: false });
 
 /**
  * Shared layout: Header + Sidebar + <main> + Footer.

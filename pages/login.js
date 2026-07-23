@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import Head from 'next/head';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useStore } from '../lib/store';
+import { useState } from "react";
+import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useStore } from "../lib/store";
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18">
@@ -16,8 +16,8 @@ const GoogleIcon = () => (
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useStore();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -26,26 +26,25 @@ export default function LoginPage() {
     if (step === 1 && email.trim()) { setStep(2); return; }
     if (step === 2) {
       setLoading(true);
-      // Simulate network delay for realism
-      await new Promise(r => setTimeout(r, 800));
-      const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      await new Promise((r) => setTimeout(r, 800));
+      const name = email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
       login({ name, email, avatar: name[0].toUpperCase() });
       setLoading(false);
-      router.push(router.query.from || '/');
+      router.push(router.query.from || "/");
     }
   };
 
   const handleGoogle = async () => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 600));
-    login({ name: 'Vaibhav More', email: 'vaibhav@gmail.com', avatar: 'V' });
+    await new Promise((r) => setTimeout(r, 600));
+    login({ name: "Vaibhav More", email: "vaibhav@gmail.com", avatar: "V" });
     setLoading(false);
-    router.push('/');
+    router.push("/");
   };
 
   return (
     <>
-      <Head><title>Sign in – YouTube</title></Head>
+      <Head><title>Sign in - YouTube</title></Head>
       <div className="auth-page">
         <div className="auth-card">
           <div className="auth-logo">
@@ -53,38 +52,27 @@ export default function LoginPage() {
               <path d="M27.97 3.12C27.64 1.89 26.68.93 25.45.6 23.22 0 14.28 0 14.28 0S5.35 0 3.12.6C1.89.93.93 1.89.6 3.12 0 5.35 0 10 0 10s0 4.65.6 6.88c.33 1.23 1.29 2.18 2.52 2.52C5.35 20 14.28 20 14.28 20s8.94 0 11.17-.6c1.23-.34 2.18-1.29 2.52-2.52C28.57 14.65 28.57 10 28.57 10s-.02-4.65-.6-6.88Z" fill="#FF0000"/>
               <path d="M11.43 14.29 18.85 10l-7.42-4.29v8.58Z" fill="white"/>
             </svg>
-            <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--yt-text)' }}>YouTube</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: "var(--yt-text)" }}>YouTube</span>
           </div>
-
           <h1 className="auth-title">Sign in</h1>
-          <p className="auth-sub">{step === 1 ? 'Use your Google Account' : `Welcome, ${email.split('@')[0]}`}</p>
-
+          <p className="auth-sub">{step === 1 ? "Use your Google Account" : "Welcome, " + email.split("@")[0]}</p>
           <button className="auth-google-btn" onClick={handleGoogle} disabled={loading}>
             <GoogleIcon />
-            {loading ? 'Signing in…' : 'Continue with Google'}
+            {loading ? "Signing in..." : "Continue with Google"}
           </button>
-
           <div className="auth-divider">or</div>
-
           <form onSubmit={handleNext}>
             {step === 1 ? (
-              <input
-                className="auth-input" type="email" placeholder="Email or phone"
-                value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus
-              />
+              <input className="auth-input" type="email" placeholder="Email or phone" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
             ) : (
-              <input
-                className="auth-input" type="password" placeholder="Enter your password"
-                value={password} onChange={(e) => setPassword(e.target.value)} autoFocus
-              />
+              <input className="auth-input" type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
             )}
             <button className="auth-btn" type="submit" disabled={loading}>
-              {loading ? 'Signing in…' : step === 1 ? 'Next' : 'Sign in'}
+              {loading ? "Signing in..." : step === 1 ? "Next" : "Sign in"}
             </button>
           </form>
-
           <div className="auth-footer">
-            {step === 1 && <><a href="#" className="auth-link" onClick={e => e.preventDefault()}>Forgot email?</a><span style={{ margin: '0 8px', color: 'var(--yt-border)' }}>•</span></>}
+            {step === 1 && <><a href="#" className="auth-link" onClick={(e) => e.preventDefault()}>Forgot email?</a><span style={{ margin: "0 8px" }}>|</span></>}
             <Link href="/signup" className="auth-link">Create account</Link>
           </div>
         </div>
@@ -92,3 +80,4 @@ export default function LoginPage() {
     </>
   );
 }
+export async function getServerSideProps() { return { props: {} }; }

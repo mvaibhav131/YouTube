@@ -42,3 +42,4 @@ export default function History() {
     </PageLayout>
   );
 }
+export async function getServerSideProps() { return { props: {} }; }

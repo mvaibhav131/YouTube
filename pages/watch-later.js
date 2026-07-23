@@ -1,1 +1,2 @@
-﻿import PageLayout from "../components/PageLayout"; import AuthWall from "../components/AuthWall"; export default function WatchLater() { return (<PageLayout title="Watch later - YouTube"><AuthWall section="Watch later" description="Sign in to save videos to watch later." /></PageLayout>); }
+import PageLayout from "../components/PageLayout"; import AuthWall from "../components/AuthWall"; export default function WatchLater() { return (<PageLayout title="Watch later - YouTube"><AuthWall section="Watch later" description="Sign in to save videos to watch later." /></PageLayout>); }
+export async function getServerSideProps() { return { props: {} }; }
