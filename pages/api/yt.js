@@ -65,19 +65,26 @@ export default async function handler(req, res) {
   const timer = setTimeout(() => controller.abort(), 10000);
 
   try {
-    // Next.js 16 inbuilt fetch cache — revalidate every 45s for trending, 5min for others
-    const revalidate = type === 'trending' ? 45 : 300;
+    // Cache-Control TTL: 45s for trending, no-cache for search (each query unique)
+    const ttl = type === 'trending' ? 45 : type === 'search' ? 0 : 120;
 
+    // NOTE: next: { revalidate } is NOT used here — it mis-keys the cache in
+    // Next.js API routes on Netlify (serverless). Cache-Control header is enough.
     const ytRes = await fetch(`${BASE_URL}${path}&key=${API_KEY}`, {
       signal: controller.signal,
       headers: { Accept: 'application/json' },
-      next: { revalidate },   // ← Next.js 16 inbuilt data cache
+      cache: 'no-store',   // always hit YouTube API fresh; Cache-Control handles CDN
     });
     clearTimeout(timer);
 
     const data = await ytRes.json();
-    // Also set HTTP Cache-Control for CDN/browser
-    res.setHeader('Cache-Control', `s-maxage=${revalidate}, stale-while-revalidate=60`);
+
+    if (ttl > 0) {
+      res.setHeader('Cache-Control', `s-maxage=${ttl}, stale-while-revalidate=30`);
+    } else {
+      // search: no CDN cache — every query must return unique results
+      res.setHeader('Cache-Control', 'no-store');
+    }
     return res.status(ytRes.status).json(data);
   } catch (err) {
     clearTimeout(timer);
