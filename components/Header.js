@@ -8,6 +8,7 @@ import {
   UserOutlined, SunOutlined, MoonOutlined,
 } from '@ant-design/icons';
 import { useTheme } from '../lib/ThemeContext';
+import { useStore } from '../lib/store';
 
 // Load mobile search overlay only on client
 const MobileSearch = dynamic(() => import('./MobileSearch'), { ssr: false });
@@ -21,6 +22,7 @@ const YTPlayIcon = () => (
 
 export default function Header({ onMenuClick }) {
   const { isDark, toggle } = useTheme();
+  const { user, logout } = useStore();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -135,9 +137,15 @@ export default function Header({ onMenuClick }) {
             <BellOutlined />
             <span className="yt-notif-dot" />
           </button>
-          <Link href="/login">
-            <div className="yt-avatar" role="button" aria-label="Account">
-              <UserOutlined style={{ fontSize: 18 }} />
+          <Link href={user ? '#' : '/login'} onClick={user ? (e) => { e.preventDefault(); if (confirm(`Sign out as ${user.name}?`)) { logout(); router.push('/'); } } : undefined}>
+            <div
+              className="yt-avatar"
+              role="button"
+              aria-label="Account"
+              title={user ? `${user.name} — click to sign out` : 'Sign in'}
+              style={user ? { background: '#1565c0' } : {}}
+            >
+              {user ? user.avatar : <UserOutlined style={{ fontSize: 18 }} />}
             </div>
           </Link>
         </div>
