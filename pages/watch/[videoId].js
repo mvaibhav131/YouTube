@@ -177,6 +177,28 @@ export default function WatchPage() {
   const [sidebar,  setSidebar]  = useState('hidden');
   const [descOpen, setDescOpen] = useState(false);
 
+  // ── Persistent sound preference ────────────────────────────────────────
+  // Once user unmutes, all subsequent videos load with sound.
+  const [soundOn, setSoundOn] = useState(false); // initialised in effect
+
+  useEffect(() => {
+    // Read saved preference on mount (localStorage only available client-side)
+    setSoundOn(localStorage.getItem('yt-sound') === 'on');
+  }, []);
+
+  const toggleSound = useCallback(() => {
+    setSoundOn(prev => {
+      const next = !prev;
+      localStorage.setItem('yt-sound', next ? 'on' : 'off');
+      // Send live command to current iframe via postMessage
+      iframeRef.current?.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: next ? 'unMute' : 'mute', args: [] }),
+        'https://www.youtube.com'
+      );
+      return next;
+    });
+  }, []);
+
   // ── YouTube IFrame Player API ──────────────────────────────────────────
   const iframeRef    = useRef(null);
   const playerRef    = useRef(null);
@@ -359,7 +381,7 @@ export default function WatchPage() {
                 <iframe
                   ref={iframeRef}
                   key={videoId}
-                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
+                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1${soundOn ? '' : '&mute=1'}&rel=0&modestbranding=1&enablejsapi=1`}
                   title={sn.title || 'YouTube video'}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
@@ -412,6 +434,15 @@ export default function WatchPage() {
                   <div className="yt-action-group">
                     <button className="yt-btn"><ShareAltOutlined /> Share</button>
                     <button className="yt-btn"><DownloadOutlined /> Download</button>
+                    {/* Sound toggle — persists across videos */}
+                    <button
+                      className="yt-btn"
+                      onClick={toggleSound}
+                      title={soundOn ? 'Mute' : 'Unmute — sound will stay on for all videos'}
+                      style={soundOn ? { color: '#ff0000', borderColor: '#ff0000' } : {}}
+                    >
+                      {soundOn ? '🔊 Sound On' : '🔇 Muted'}
+                    </button>
                     <button className="yt-btn" style={{ padding: '8px 12px' }}>
                       <EllipsisOutlined style={{ fontSize: 20 }} />
                     </button>
